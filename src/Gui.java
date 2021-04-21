@@ -20,6 +20,7 @@ public class Gui extends JFrame {
 				try {
 					Gui frame = new Gui();
 					frame.setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -37,8 +38,7 @@ public class Gui extends JFrame {
 			@Override
 			public void paint(Graphics g) {				
 				super.paint(g);
-				Individual ind = new Individual();
-				ind = ind.getOptimal();
+				Individual ind = Individual.getOptimal();
 				ind.draw(g);
 //				g.drawImage(ind.getImageFromChromosome(),0,0, null);
 //				g.drawImage(Parameters.getInstance().getImage(), 0, 0, null);

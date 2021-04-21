@@ -3,6 +3,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Random;
 
@@ -12,17 +16,24 @@ import java.util.Random;
 public class Individual implements Serializable{
 
 	private static final long serialVersionUID = 1L;	
-	private transient static Parameters parameters = Parameters.getInstance();
-	private transient static int width = parameters.getWidth();
-	private transient static int height = parameters.getHeight();
-	private transient static BufferedImage image = parameters.getImage();
-	private transient static Random rnd = parameters.getRandon();
+	private transient static Parameters parameters;
+	private transient static int width;
+	private transient static int height; 
+	private transient static BufferedImage image;
+	private transient static Random rnd;
 	
-	private static String imageFilename = parameters.getImageFilename();
-	private boolean[][] chromosome = new boolean[height][width];	
+	private static String imageFilename;
+	private boolean[][] chromosome;	
 	private int fitness;	
 	
 	public Individual() {
+		parameters = Parameters.getInstance();
+		image = parameters.getImage();
+		width = parameters.getWidth();
+		height = parameters.getHeight();
+		rnd = parameters.getRandon();
+		imageFilename = parameters.getImageFilename();
+		chromosome = new boolean[height][width];
 		for(int y = 0; y < height; y++){
         	for (int x = 0; x < width; x++){
         		if(rnd.nextBoolean()){
@@ -33,14 +44,6 @@ public class Individual implements Serializable{
 	}
 	
 	
-
-	/**
-	 * 
-	 */
-	
-	/**
-	 * 
-	 */
 	public void evaluateFitness() {
 //		BufferedImage image = new BufferedImage(parameters.width, parameters.height, BufferedImage.TYPE_4BYTE_ABGR);
 //		Graphics2D g2 = image.createGraphics();		
@@ -143,9 +146,9 @@ public class Individual implements Serializable{
 
 	public static Individual getOptimal(){
 		Individual ind = new Individual();
-		for(int y = 0; y < height; y++){
-        	for (int x = 0; x < width; x++){
-        		if(image.getRGB(x, y) == Color.WHITE.getRGB()){
+		for(int y = 0; y < ind.height; y++){
+        	for (int x = 0; x < ind.width; x++){
+        		if(ind.image.getRGB(x, y) == Color.WHITE.getRGB()){
         			ind.chromosome[y][x] = true;
         		}else{
         			ind.chromosome[y][x] = false;
@@ -167,5 +170,33 @@ public class Individual implements Serializable{
         	}
 		}
 		return image;
+	}
+	
+	public String getAsciiFromChromosome(){
+		StringBuilder sb = new StringBuilder();
+		String c = "#";
+		for(int y = 0; y < height; y++){
+        	for (int x = 0; x < width; x++){
+        		if(image.getRGB(x, y) == Color.WHITE.getRGB()){
+        			sb.append(" ");
+        		}else if (image.getRGB(x, y) == Color.BLACK.getRGB()){
+        			
+        			sb.append(c);
+        		}else{
+        			System.err.println("Color not allowed");
+        		}
+        		
+        	}
+        	sb.append("\r\n");
+        }       
+        try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(new File("ascii.txt")));
+			writer.write(sb.toString());
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sb.toString();
 	}
 }
