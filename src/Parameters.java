@@ -23,6 +23,8 @@ public class Parameters {
 //	private static String imageFilename = "./pics/evolution1000x563.jpg";
 	private static String imageFilename = "./pics/me.jpg";
 	private static Parameters parameters = null;
+	public static boolean threshold = false; 
+	public static int thresholdValue = 100;	
 	
 	public static void main(String[] args) {
 		parameters = new Parameters();
@@ -33,14 +35,21 @@ public class Parameters {
 	
 	public BufferedImage getImage(){
 		if(image == null){
-			MarvinImage original = MarvinImageIO.loadImage(imageFilename);
+			MarvinImage original = MarvinImageIO.loadImage(imageFilename);			
 	        MarvinImage output = original.clone();        
-	        halftoneErrorDiffusion(original, output);
-	        MarvinImageIO.saveImage(output, "halftone.png");
-	        
+	        if(!threshold) {
+		        halftoneErrorDiffusion(original, output);
+		        MarvinImageIO.saveImage(output, "halftone.png");
+	        }else {	        
+		        thresholding(original, output, thresholdValue);	        
+		        MarvinImageIO.saveImage(output, "threshold.png");
+	        }
+	        	        
 	        image = output.getBufferedImage();	       	        
 	        width = image.getWidth();
-			height = image.getHeight();				
+			height = image.getHeight();		
+			
+			
 			Individual ind = Individual.getOptimal();
 			try {
 				BufferedWriter writer = new BufferedWriter(new FileWriter(new File("ascii.txt")));
@@ -71,5 +80,11 @@ public class Parameters {
 	}
 	public Random getRandon() {		
 		return rnd;
+	}
+	
+	public void setImageFilename(String imageFilename) {
+		Parameters.imageFilename = imageFilename;
+		image = null;
+		image = getImage();
 	}
 }
