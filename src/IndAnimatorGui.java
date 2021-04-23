@@ -36,8 +36,9 @@ public class IndAnimatorGui extends JFrame implements Observer{
 	Individual ind = null;
 	static int factor = 1;
 	static final int everyNPic = 1;
-	int delayStart = 20;
-	int delayTheRest = 10;
+	int delayStart = 0;//20
+	int delayTheRest = 0;//10
+	boolean outputGif = true;
 	/**
 	 * Launch the application.
 	 */
@@ -165,9 +166,13 @@ public class IndAnimatorGui extends JFrame implements Observer{
 				loadIndividual();			
 				setChanged();
 				notifyObservers(ind);
-				ouputImg(ind, factor);				
+				if(outputGif){
+					ouputImg(ind, factor);
+				}
 			}
-			outputGif();								
+			if(outputGif){
+				outputGif();
+			}
 		}
 
 		private void loadIndividual() {

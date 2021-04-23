@@ -15,6 +15,15 @@ import java.util.Random;
 
 public class Individual implements Serializable{
 
+	/**
+	 * Remove all the transient and leave in parameters
+	 * Serialize load should set parameters if needed i.e. when seeding
+	 * But isnt needed for ind animator
+	 * Probably need threshold and threshhold value in here
+	 * Get rid of singleton just complicated things
+	 * All parameters just public static
+	 *  
+	 */
 	private static final long serialVersionUID = 1L;	
 	private transient static Parameters parameters;
 	private transient static int width;
@@ -63,12 +72,12 @@ public class Individual implements Serializable{
 	}
 
 	public void draw(Graphics g) {
-		
+		//doesnt use width and height so that ind animator doesnt need to load images in serialize
 		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, width, height);
+		g.fillRect(0, 0, chromosome[0].length, chromosome.length);
 		g.setColor(Color.WHITE);
-		for(int y = 0; y < height; y++){
-        	for (int x = 0; x < width; x++){
+		for(int y = 0; y < chromosome.length; y++){
+        	for (int x = 0; x < chromosome[y].length; x++){
         		if(chromosome[y][x]){
         			g.fillRect(x, y, 1, 1);
         		}
@@ -165,6 +174,7 @@ public class Individual implements Serializable{
 		return width;
 	}
 
+	
 
 	public void resetTransientFields() {
 		parameters = Parameters.getInstance();

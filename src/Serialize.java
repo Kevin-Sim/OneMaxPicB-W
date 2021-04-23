@@ -29,6 +29,8 @@ public class Serialize {
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 				individual = (Individual) in.readObject();
 //				System.out.println(individual.s);
+				
+				
 				individual.resetTransientFields();
 			
 			

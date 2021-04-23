@@ -5,7 +5,7 @@ public class HillClimber extends Observable implements Runnable {
 
 	Parameters parameters = Parameters.getInstance();
 	private boolean running;
-	
+	public static boolean seed = false;
 	
 	@Override
 	public void run() {
@@ -15,11 +15,10 @@ public class HillClimber extends Observable implements Runnable {
 		running = true;
 		
 		String[] filenames = FileGetter.getFileNames("", "", ".ind");
-		if(filenames != null && filenames.length > 0) {
+		if(seed && filenames != null && filenames.length > 0) {
 			String filename = filenames[filenames.length - 1];		
 			best = Serialize.load(filename);
 		}
-		
 		int optimal = Individual.getOptimal().getFitness();
 		while(running) {
 			generation++;
