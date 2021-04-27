@@ -1,16 +1,11 @@
-import java.util.Observable;
 
+public class HillClimber extends  Algorithm{
 
-public class HillClimber extends Observable implements Runnable {
-
-	Parameters parameters = Parameters.getInstance();
-	private boolean running;
-	public static boolean seed = false;
+	
 	
 	@Override
 	public void run() {
-		Individual best = new Individual();		
-		int generation = 0;
+		best = new Individual();			
 		int improv = 0;;
 		running = true;
 		
@@ -20,8 +15,7 @@ public class HillClimber extends Observable implements Runnable {
 			best = Serialize.load(filename);
 		}
 		int optimal = Individual.getOptimal().getFitness();
-		while(running) {
-			generation++;
+		while(running) {			
 			Individual candidate = mutate(best.copy());
 			if(candidate.evaluateFitness() > best.getFitness()) {
 				best = candidate;				
@@ -35,7 +29,7 @@ public class HillClimber extends Observable implements Runnable {
 					Serialize.save(best, System.currentTimeMillis() + ".ind");
 				}
 			}
-			System.out.println(generation + "\t" + best.getFitness() + "\t" + optimal);			
+			System.out.println(Individual.getEvaluations() + "\t" + best.getFitness() + "\t" + optimal);			
 		}
 	}
 
@@ -46,13 +40,6 @@ public class HillClimber extends Observable implements Runnable {
 		return candidate;
 	}
 
-	public boolean isRunning() {
-		// TODO Auto-generated method stub
-		return running;
-	}
 	
-	public void stop() {
-		running = false;
-	}
 
 }

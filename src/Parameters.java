@@ -17,6 +17,10 @@ import static marvin.MarvinPluginCollection.*;
 public class Parameters {
 
 	private static Random rnd = new Random();
+	
+	/**
+	 * Image parameters
+	 */
 	private static int width; 
 	private static int height;
 	private static BufferedImage image = null;
@@ -25,6 +29,17 @@ public class Parameters {
 	private static Parameters parameters = null;
 	public static boolean threshold = false; 
 	public static int thresholdValue = 100;	
+	
+	public static Class algorithmClass = HillClimber.class;
+	   
+	/*
+	 * EA parameters
+	 */
+	int popSize = 100;
+	int tournamentSize = 3;
+	double crossoverProbability = 0.5;//0.99
+	double mutationProbability = 0.1;//0.1
+	public double mutationRate = 0.001;//0.01
 	
 	public static void main(String[] args) {
 		parameters = new Parameters();

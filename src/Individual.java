@@ -34,6 +34,7 @@ public class Individual implements Serializable{
 	private String imageFilename;
 	private boolean[][] chromosome;	
 	private int fitness;	
+	private static int evaluations = 0; 
 	
 	public Individual() {
 		parameters = Parameters.getInstance();
@@ -58,6 +59,7 @@ public class Individual implements Serializable{
 	
 	
 	public int evaluateFitness() {
+		evaluations++;
 		fitness = 0;
 		for(int y = 0; y < height; y++){
         	for (int x = 0; x < width; x++){
@@ -174,7 +176,9 @@ public class Individual implements Serializable{
 		return width;
 	}
 
-	
+	public static int getEvaluations() {
+		return evaluations;
+	}	
 
 	public void resetTransientFields() {
 		parameters = Parameters.getInstance();

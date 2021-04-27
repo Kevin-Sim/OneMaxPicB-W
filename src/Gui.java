@@ -35,7 +35,7 @@ public class Gui extends JFrame implements Observer {
 	private JPanel displayPanel;
 	private JButton runButton;
 	private Individual individual;
-	private HillClimber hc;
+	private Algorithm alg;
 	private Thread thread;
 	protected BufferedImage image = null;
 	protected boolean showImage = false;
@@ -81,21 +81,27 @@ public class Gui extends JFrame implements Observer {
 
 			public void actionPerformed(ActionEvent arg0) {
 				
-				if (hc == null || !hc.isRunning()) {
+				if (alg == null || !alg.isRunning()) {
 					int response = JOptionPane.showConfirmDialog(null, "seed with last ind?");
 					if(response == JOptionPane.YES_OPTION) {
-						HillClimber.seed = true;
+						Algorithm.seed = true;
 					}else {
-						HillClimber.seed = false;
+						Algorithm.seed = false;
 					}
-					hc = new HillClimber();
-					hc.addObserver(Gui.this);
-					thread = new Thread(hc);
+					try {
+						alg = (Algorithm) Parameters.algorithmClass.newInstance();
+					} catch (InstantiationException e) {						
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {						
+						e.printStackTrace();
+					}					
+					alg.addObserver(Gui.this);
+					thread = new Thread(alg);
 					thread.start();
 					runButton.setBackground(Color.red);
 					runButton.setText("Stop");
 				} else {
-					hc.stop();
+					alg.stop();
 					runButton.setBackground(Color.green);
 					runButton.setText("Run");
 				}
@@ -108,7 +114,7 @@ public class Gui extends JFrame implements Observer {
 		JButton loadBtn = new JButton("Load");
 		loadBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (hc != null && hc.isRunning()) {
+				if (alg != null && alg.isRunning()) {
 					JOptionPane.showMessageDialog(null, "Stop The current Algorithm First");
 					return;
 				}
@@ -163,7 +169,7 @@ public class Gui extends JFrame implements Observer {
 		JCheckBox chckbxThreshold = new JCheckBox("Threshold");
 		chckbxThreshold.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (hc != null && hc.isRunning()) {
+				if (alg != null && alg.isRunning()) {
 					JOptionPane.showMessageDialog(null, "Stop The current Algorithm First");
 					return;
 				}
