@@ -5,7 +5,9 @@ public class HillClimber extends  Algorithm{
 	
 	@Override
 	public void run() {
-		best = new Individual();			
+		best = new Individual();	
+		startingFitness = best.getFitness();
+		
 		int improv = 0;;
 		running = true;
 		
@@ -21,21 +23,21 @@ public class HillClimber extends  Algorithm{
 				best = candidate;				
 				if(best.getFitness() == optimal) {					
 					running = false;
-				}
-				setChanged();
-				notifyObservers(best);
+				}				
 				improv++;
 				if(improv % 250 == 0) {
 					Serialize.save(best, System.currentTimeMillis() + ".ind");
 				}
 			}
+			setChanged();
+			notifyObservers(best);
 			System.out.println(Individual.getEvaluations() + "\t" + best.getFitness() + "\t" + optimal);			
 		}
 	}
 
 	private Individual mutate(Individual candidate) {
-		int x = parameters.getRandon().nextInt(parameters.getWidth());
-		int y = parameters.getRandon().nextInt(parameters.getHeight());		
+		int x = parameters.getRandom().nextInt(parameters.getWidth());
+		int y = parameters.getRandom().nextInt(parameters.getHeight());		
 		candidate.getChromosome()[y][x] = !candidate.getChromosome()[y][x]; 		
 		return candidate;
 	}

@@ -24,10 +24,18 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
 import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.JCheckBox;
 import javax.swing.event.ChangeListener;
 
 import javax.swing.event.ChangeEvent;
+import javax.swing.JLabel;
+import java.awt.SystemColor;
+import javax.swing.JComboBox;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class Gui extends JFrame implements Observer {
 
@@ -40,6 +48,14 @@ public class Gui extends JFrame implements Observer {
 	protected BufferedImage image = null;
 	protected boolean showImage = false;
 	protected int imageTransparancy = 0;
+	private JSlider sliderSize;
+	private JCheckBox chckbxThreshold;
+	private JSlider sliderThreshold;
+	private JLabel lblFitness;
+	private JLabel lblOptimal;
+	private JLabel lblEvaluations;
+	public static int optimal = 0;
+	MyChartPanel myChart = null;
 
 	/**
 	 * Launch the application.
@@ -63,7 +79,7 @@ public class Gui extends JFrame implements Observer {
 	 */
 	public Gui() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1200, 800);
+		setBounds(100, 100, 550, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -82,14 +98,17 @@ public class Gui extends JFrame implements Observer {
 			public void actionPerformed(ActionEvent arg0) {
 				
 				if (alg == null || !alg.isRunning()) {
-					int response = JOptionPane.showConfirmDialog(null, "seed with last ind?");
-					if(response == JOptionPane.YES_OPTION) {
-						Algorithm.seed = true;
-					}else {
-						Algorithm.seed = false;
-					}
+//					int response = JOptionPane.showConfirmDialog(null, "seed with last ind?");
+//					if(response == JOptionPane.YES_OPTION) {
+//						Algorithm.seed = true;
+//					}else {
+//						Algorithm.seed = false;
+//						Individual.setEvaluations(0);
+//					}
+					Individual.setEvaluations(0);
 					try {
 						alg = (Algorithm) Parameters.algorithmClass.newInstance();
+						System.out.println("Starting with " + Parameters.algorithmClass );
 					} catch (InstantiationException e) {						
 						e.printStackTrace();
 					} catch (IllegalAccessException e) {						
@@ -100,15 +119,28 @@ public class Gui extends JFrame implements Observer {
 					thread.start();
 					runButton.setBackground(Color.red);
 					runButton.setText("Stop");
+					sliderSize.setEnabled(false);
+					chckbxThreshold.setEnabled(false);
+					sliderThreshold.setEnabled(false);
+					if(myChart != null) {
+						myChart.dispose();
+					}
+					myChart = new MyChartPanel();
+					myChart.setVisible(true);
+					
+					
 				} else {
 					alg.stop();
 					runButton.setBackground(Color.green);
 					runButton.setText("Run");
+					sliderSize.setEnabled(true);
+					chckbxThreshold.setEnabled(true);
+					sliderThreshold.setEnabled(true);					
 				}
 				
 			}
 		});
-		runButton.setBounds(26, 21, 89, 23);
+		runButton.setBounds(10, 21, 130, 23);
 		controlPanel.add(runButton);
 
 		JButton loadBtn = new JButton("Load");
@@ -124,13 +156,14 @@ public class Gui extends JFrame implements Observer {
 					File f = fc.getSelectedFile();
 					Parameters.getInstance().setImageFilename(f.getAbsolutePath());
 					individual = Individual.getOptimal();
+					optimal = individual.getFitness();
 					displayPanel.setPreferredSize(
 							new Dimension(Parameters.getInstance().getWidth(), Parameters.getInstance().getHeight()));
 					repaint();
 				}
 			}
 		});
-		loadBtn.setBounds(26, 50, 89, 23);
+		loadBtn.setBounds(10, 50, 130, 23);
 		controlPanel.add(loadBtn);
 
 		JButton btnSaveSvg = new JButton("Save SVG");
@@ -149,24 +182,25 @@ public class Gui extends JFrame implements Observer {
 				}
 			}
 		});
-		btnSaveSvg.setBounds(26, 235, 89, 23);
+		btnSaveSvg.setBounds(26, 326, 89, 23);
 		controlPanel.add(btnSaveSvg);
 
-		JSlider slider = new JSlider();
-		slider.setEnabled(false);
-		slider.addChangeListener(new ChangeListener() {
+		sliderThreshold = new JSlider();
+		sliderThreshold.setEnabled(false);
+		sliderThreshold.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				Parameters.thresholdValue = slider.getValue();
+				Parameters.thresholdValue = sliderThreshold.getValue();
 				Parameters.getInstance().setImageFilename(Parameters.getInstance().getImageFilename());
 				individual = Individual.getOptimal();
+				optimal = individual.getFitness();
 				repaint();
 			}
 		});
-		slider.setMaximum(255);
-		slider.setBounds(10, 123, 130, 26);
-		controlPanel.add(slider);
+		sliderThreshold.setMaximum(255);
+		sliderThreshold.setBounds(10, 188, 130, 26);
+		controlPanel.add(sliderThreshold);
 
-		JCheckBox chckbxThreshold = new JCheckBox("Threshold");
+		chckbxThreshold = new JCheckBox("Threshold / Halftone");
 		chckbxThreshold.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (alg != null && alg.isRunning()) {
@@ -175,18 +209,19 @@ public class Gui extends JFrame implements Observer {
 				}
 				if (chckbxThreshold.isSelected()) {
 					Parameters.threshold = true;
-					Parameters.thresholdValue = slider.getValue();
-					slider.setEnabled(true);
+					Parameters.thresholdValue = sliderThreshold.getValue();
+					sliderThreshold.setEnabled(true);
 				} else {
 					Parameters.threshold = false;
-					slider.setEnabled(false);
+					sliderThreshold.setEnabled(false);
 				}
 				Parameters.getInstance().setImageFilename(Parameters.getInstance().getImageFilename());
 				individual = Individual.getOptimal();
+				optimal = individual.getFitness();
 				repaint();
 			}
 		});
-		chckbxThreshold.setBounds(26, 92, 97, 23);
+		chckbxThreshold.setBounds(10, 158, 130, 23);
 		controlPanel.add(chckbxThreshold);
 
 		
@@ -210,7 +245,7 @@ public class Gui extends JFrame implements Observer {
 			}
 
 		});
-		slider_1.setBounds(10, 191, 130, 26);
+		slider_1.setBounds(10, 273, 130, 26);
 		controlPanel.add(slider_1);
 
 		JCheckBox chckbxOriginal = new JCheckBox("Original");
@@ -221,8 +256,81 @@ public class Gui extends JFrame implements Observer {
 				Gui.this.repaint();
 			}
 		});
-		chckbxOriginal.setBounds(26, 160, 97, 23);
+		chckbxOriginal.setBounds(26, 235, 97, 23);
 		controlPanel.add(chckbxOriginal);
+		
+		
+		JLabel lblSize = new JLabel("Size", SwingConstants.CENTER);
+		lblSize.setBackground(new Color(240, 240, 240));
+		lblSize.setOpaque(true);
+		lblSize.setBounds(10, 84, 130, 14);
+		controlPanel.add(lblSize);
+		
+		
+		sliderSize = new JSlider();
+		sliderSize.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				lblSize.setText("Size: " + sliderSize.getValue());
+			}
+		});
+		sliderSize.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				Parameters.getInstance().setImage(null);
+				Parameters.imageSize = sliderSize.getValue();
+				Parameters.getInstance().getImage();
+				individual = Individual.getOptimal();
+				optimal = individual.getFitness();
+				Gui.this.repaint();
+			}
+		});
+		
+		sliderSize.setMaximum(100);
+		sliderSize.setMinimum(1);
+		sliderSize.setValue(100);
+		sliderSize.setEnabled(true);
+		sliderSize.setBounds(10, 109, 130, 26);
+		controlPanel.add(sliderSize);
+		
+		
+		
+		lblFitness = new JLabel("Fitness: ");
+		lblFitness.setBounds(10, 392, 130, 23);
+		lblFitness.setBackground(new Color(240, 240, 240));
+		lblFitness.setOpaque(true);
+		controlPanel.add(lblFitness);
+		
+		lblOptimal = new JLabel("Optimal: ");
+		lblOptimal.setOpaque(true);
+		lblOptimal.setBackground(SystemColor.menu);
+		lblOptimal.setBounds(10, 425, 130, 23);
+		controlPanel.add(lblOptimal);
+		
+		lblEvaluations = new JLabel("Evaluations: ");
+		lblEvaluations.setOpaque(true);
+		lblEvaluations.setBackground(SystemColor.menu);
+		lblEvaluations.setBounds(10, 459, 130, 23);
+		controlPanel.add(lblEvaluations);
+		
+		Object[] items = new Object[2];
+		items[0] = EA.class;
+		items[1] = HillClimber.class;
+		JComboBox comboBox = new JComboBox(items);
+		comboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println(comboBox.getSelectedItem());
+				Parameters.getInstance().algorithmClass = (Class) comboBox.getSelectedItem();
+			}
+		});
+		
+		comboBox.setBounds(10, 522, 130, 20);
+		controlPanel.add(comboBox);
+		
+		JLabel lblAlgorithm = new JLabel("Algorithm", SwingConstants.CENTER);
+		lblAlgorithm.setOpaque(true);
+		lblAlgorithm.setBackground(SystemColor.menu);
+		lblAlgorithm.setBounds(10, 509, 130, 14);
+		controlPanel.add(lblAlgorithm);
 
 		
 		displayPanel = new JPanel() {
@@ -233,6 +341,7 @@ public class Gui extends JFrame implements Observer {
 					individual.draw(g);
 				}
 //				Individual ind = Individual.getOptimal();
+//				optimal = individual.getFitness();
 //				ind.draw(g);
 //				g.drawImage(ind.getImageFromChromosome(),0,0, null);
 //				g.drawImage(Parameters.getInstance().getImage(), 0, 0, null);
@@ -248,6 +357,7 @@ public class Gui extends JFrame implements Observer {
 				new Dimension(Parameters.getInstance().getWidth(), Parameters.getInstance().getHeight()));
 		contentPane.add(displayPanel, BorderLayout.CENTER);
 		individual = Individual.getOptimal();
+		optimal = individual.getFitness();
 		repaint();
 	}
 
@@ -255,10 +365,17 @@ public class Gui extends JFrame implements Observer {
 	public void update(Observable o, Object arg) {
 		if (arg instanceof Individual) {
 			individual = (Individual) arg;
+			lblFitness.setText("Fitness: " + individual.getFitness());
+			lblOptimal.setText("Optimal: " + optimal);
+			lblEvaluations.setText("Evaluations: " + Individual.getEvaluations());
+			if(myChart != null) {
+				myChart.addDataPoint((Individual) individual, alg);
+			}						
+			
 			repaint();
 		}
-		if (o instanceof HillClimber) {
-			if (!((HillClimber) o).isRunning()) {
+		if (o instanceof Algorithm) {
+			if (!((Algorithm) o).isRunning()) {
 				runButton.setBackground(Color.green);
 				runButton.setText("Run");
 			}
@@ -296,5 +413,22 @@ public class Gui extends JFrame implements Observer {
 		// g.drawImage(image, 0, 0, parameters.size, parameters.size, null);
 		g.dispose();
 	}
-
+	public JSlider getSliderSize() {
+		return sliderSize;
+	}
+	public JCheckBox getChckbxThreshold() {
+		return chckbxThreshold;
+	}
+	public JSlider getSliderThreshold() {
+		return sliderThreshold;
+	}
+	public JLabel getLblFitness() {
+		return lblFitness;
+	}
+	public JLabel getLblOptimal() {
+		return lblOptimal;
+	}
+	public JLabel getLblEvaluations() {
+		return lblEvaluations;
+	}
 }

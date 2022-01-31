@@ -6,6 +6,7 @@ public abstract class Algorithm extends Observable implements Runnable{
 	Parameters parameters = Parameters.getInstance();
 	boolean running;
 	Individual best;	
+	int startingFitness;
 	
 	public boolean isRunning() {
 		// TODO Auto-generated method stub

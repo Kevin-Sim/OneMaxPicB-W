@@ -19,10 +19,12 @@ public class EA extends Algorithm{
 			replace(seeds);
 		}
 		best = getBest();
+		startingFitness = best.getFitness();
+		
 		int optimal = Individual.getOptimal().getFitness();
 		while(running) {			
 			ArrayList<Individual> parents = select();			
-			ArrayList<Individual> children = crossoverUniform(parents);
+			ArrayList<Individual> children = crossoverTwoPoint(parents);
 			children = mutate(children);
 			evaluate(children);
 			replace(children);
@@ -32,13 +34,14 @@ public class EA extends Algorithm{
 				if(best.getFitness() == optimal) {					
 					running = false;
 				}
-				setChanged();
-				notifyObservers(best);
+				
 				improv++;
 				if(improv % 250 == 0) {
 					Serialize.save(best, System.currentTimeMillis() + ".ind");
 				}
 			}
+			setChanged();
+			notifyObservers(best);
 			System.out.println(Individual.getEvaluations() + "\t" + best.getFitness() + "\t" + optimal);			
 		}
 	}
@@ -59,12 +62,12 @@ public class EA extends Algorithm{
 		if(parents == null || parents.size() < 2) {
 			return null;
 		}
-		if(parameters.getRandon().nextDouble() > parameters.crossoverProbability) {
+		if(parameters.getRandom().nextDouble() > parameters.crossoverProbability) {
 			return parents;
 		}
 		ArrayList<Individual> children = new ArrayList<>();
-		int yCut = parameters.getRandon().nextInt(parameters.getHeight());
-		int xCut = parameters.getRandon().nextInt(parameters.getHeight());
+		int yCut = parameters.getRandom().nextInt(parameters.getHeight());
+		int xCut = parameters.getRandom().nextInt(parameters.getHeight());
 		Individual child = new Individual();
 		for(int y = 0; y < parameters.getHeight(); y++){
         	for (int x = 0; x < parameters.getWidth(); x++){
@@ -85,7 +88,7 @@ public class EA extends Algorithm{
 		if(parents == null || parents.size() < 2) {
 			return null;
 		}
-		if(parameters.getRandon().nextDouble() > parameters.crossoverProbability) {
+		if(parameters.getRandom().nextDouble() > parameters.crossoverProbability) {
 			return parents;
 		}
 		ArrayList<Individual> children = new ArrayList<>();		
@@ -93,7 +96,7 @@ public class EA extends Algorithm{
 		for(int y = 0; y < parameters.getHeight(); y++){
         	for (int x = 0; x < parameters.getWidth(); x++){
         		
-        		if(parameters.getRandon().nextBoolean()) {
+        		if(parameters.getRandom().nextBoolean()) {
         			child.getChromosome()[y][x] = parents.get(0).getChromosome()[y][x];
         		}else {
         			child.getChromosome()[y][x] = parents.get(1).getChromosome()[y][x];
@@ -104,6 +107,38 @@ public class EA extends Algorithm{
         return children;
 	}
 	
+	private ArrayList<Individual> crossoverTwoPoint(ArrayList<Individual> parents) {
+		if(parents == null || parents.size() < 2) {
+			return null;
+		}
+		if(parameters.getRandom().nextDouble() > parameters.crossoverProbability) {
+			return parents;
+		}
+		ArrayList<Individual> children = new ArrayList<>();
+		int cut1 = parameters.getRandom().nextInt(parameters.getHeight() * parameters.getWidth());
+		int cut2 = parameters.getRandom().nextInt(parameters.getHeight() * parameters.getWidth());
+		
+		if(cut2 < cut1) {
+			int temp = cut1;
+			cut1 = cut2;
+			cut2 = temp;
+		}
+		
+	
+		Individual child = new Individual();
+		for(int y = 0; y < parameters.getHeight(); y++){
+        	for (int x = 0; x < parameters.getWidth(); x++){
+        		int position = y * parameters.getWidth() + x;
+        		if(position <= cut1 || position >= cut2) {
+        			child.getChromosome()[y][x] = parents.get(0).getChromosome()[y][x];
+        		}else  {
+        			child.getChromosome()[y][x] = parents.get(1).getChromosome()[y][x];
+        		}
+        	}
+		}    
+		children.add(child);
+        return children;
+	}
 
 	/**
 	 * Tournament for two parents
@@ -112,9 +147,9 @@ public class EA extends Algorithm{
 	private ArrayList<Individual> select() {
 		ArrayList<Individual> parents = new ArrayList<>();
 		for(int i = 0; i < 2; i++) {
-			Individual winner = population.get(parameters.getRandon().nextInt(population.size()));
+			Individual winner = population.get(parameters.getRandom().nextInt(population.size()));
 			for(int j = 1; j < parameters.tournamentSize; j++) {
-				Individual candidate = population.get(parameters.getRandon().nextInt(population.size()));
+				Individual candidate = population.get(parameters.getRandom().nextInt(population.size()));
 				if(candidate.getFitness() > winner.getFitness()) {
 					winner = candidate;
 				}
@@ -161,13 +196,13 @@ public class EA extends Algorithm{
 	}
 
 	private ArrayList<Individual> mutate(ArrayList<Individual> children) {		
-		if(parameters.getRandon().nextDouble() > parameters.mutationProbability) {
+		if(parameters.getRandom().nextDouble() > parameters.mutationProbability) {
 			return children;
 		}
 		for(Individual child : children) {
 			for(int y = 0; y < parameters.getHeight(); y++){
 	        	for (int x = 0; x < parameters.getWidth(); x++){
-	        		if(parameters.getRandon().nextDouble() > parameters.mutationRate) {
+	        		if(parameters.getRandom().nextDouble() < parameters.mutationRate) {
 	        			child.getChromosome()[y][x] = !child.getChromosome()[y][x];
 	        		}
 	        	}
