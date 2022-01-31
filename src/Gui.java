@@ -58,7 +58,7 @@ public class Gui extends JFrame implements Observer {
 	MyChartPanel myChart = null;
 
 	/**
-	 * Launch the application.
+	 * Launch the applications.
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
