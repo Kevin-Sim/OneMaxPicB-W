@@ -6,6 +6,9 @@
 *.ind
 *.txt
 *.png
+*.gif
+*.svg
+
 
  
 /bin/
