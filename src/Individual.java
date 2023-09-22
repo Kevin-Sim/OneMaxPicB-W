@@ -29,15 +29,18 @@ public class Individual implements Serializable {
 	private String imageFilename;
 	private boolean[][] chromosome;
 	private int fitness;
-	private static int evaluations = 0;
+	private static int evaluations;
+	private int imageSize;
 
 	public Individual() {
 		parameters = Parameters.getInstance();
+		imageSize = Parameters.imageSize;
 		image = parameters.getImage();
 		width = parameters.getWidth();
 		height = parameters.getHeight();
 		rnd = parameters.getRandom();
 		imageFilename = parameters.getImageFilename();
+		
 		chromosome = new boolean[height][width];
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
@@ -173,6 +176,7 @@ public class Individual implements Serializable {
 
 	public void resetTransientFields() {
 		parameters = Parameters.getInstance();
+		Parameters.imageSize = imageSize;
 		parameters.setImageFilename(imageFilename);
 		image = parameters.getImage();
 		width = parameters.getWidth();
@@ -181,8 +185,17 @@ public class Individual implements Serializable {
 	}
 
 	public static void setEvaluations(int i) {
-		evaluations = i;
-		
+		evaluations = i;		
 	}
+
+	public int getImageSize() {
+		return imageSize;
+	}
+
+	public void setImageSize(int imageSize) {
+		this.imageSize = imageSize;
+	}
+	
+	
 
 }
