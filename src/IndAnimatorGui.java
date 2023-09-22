@@ -1,5 +1,4 @@
 
-
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -12,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Observable;
@@ -24,21 +24,21 @@ import javax.swing.border.EmptyBorder;
 import com.icafe4j.image.gif.GIFTweaker;
 import com.icafe4j.image.writer.GIFWriter;
 
-
 /**
  * 
  * @author 40004938
  *
  */
-public class IndAnimatorGui extends JFrame implements Observer{
+public class IndAnimatorGui extends JFrame implements Observer {
 
 	private JPanel contentPane;
 	Individual ind = null;
 	static int factor = 1;
-	static final int everyNPic = 1;
-	int delayStart = 0;//20
-	int delayTheRest = 0;//10
+	static final int everyNPic = 20;
+	int delayStart = 0;// 20
+	int delayTheRest = 0;// 10
 	boolean outputGif = true;
+
 	/**
 	 * Launch the application.
 	 */
@@ -47,8 +47,8 @@ public class IndAnimatorGui extends JFrame implements Observer{
 			public void run() {
 				try {
 					IndAnimatorGui frame = new IndAnimatorGui();
-					frame.setVisible(true);					
-					frame.contentPane.repaint();								
+					frame.setVisible(true);
+					frame.contentPane.repaint();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -60,17 +60,17 @@ public class IndAnimatorGui extends JFrame implements Observer{
 	 * Create the frame.
 	 */
 	public IndAnimatorGui() {
-		
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1000, 800);
-		contentPane = new JPanel(){
+		contentPane = new JPanel() {
 			@Override
-			public void paint(Graphics g) {							
+			public void paint(Graphics g) {
 				super.paint(g);
-				
-				if(ind != null){
-					//clear and draw
-					ind.draw(g);																					
+
+				if (ind != null) {
+					// clear and draw
+					ind.draw(g);
 				}
 			}
 		};
@@ -82,58 +82,67 @@ public class IndAnimatorGui extends JFrame implements Observer{
 				PngLoader loader = new PngLoader(IndAnimatorGui.this);
 				Thread t = new Thread(loader);
 				t.start();
-			}			
+			}
 		});
 	}
 
 	static int pngSeqNo = 0;
-	
-	public static void ouputImg(Individual ind, int factor) {				
-		BufferedImage img = new BufferedImage(ind.getWidth() * factor, ind.getHeight() * factor, BufferedImage.TYPE_INT_ARGB);
+
+	public static void ouputImg(Individual ind, int factor) {
+		BufferedImage img = new BufferedImage(ind.getWidth() * factor, ind.getHeight() * factor,
+				BufferedImage.TYPE_INT_ARGB);
 		Graphics g = img.getGraphics();
 		ind.draw(g);
-		pngSeqNo ++;		
-		try {						
-			String filename = "" + NumberFormat.formatNumber(pngSeqNo, 4) + ".png";											
+		pngSeqNo++;
+		try {
+			String filename = "" + NumberFormat.formatNumber(pngSeqNo, 4) + ".png";
 			File outputfile = new File(filename);
 			ImageIO.write(img, "png", outputfile);
 			System.out.println(filename + " output");
 		} catch (IOException e) {
 
 		}
-	}		
+	}
 
-	
 	@Override
 	public void update(Observable arg0, Object arg1) {
-		if(arg1 instanceof Individual){
-			ind = (Individual)arg1;
+		if (arg1 instanceof Individual) {
+			ind = (Individual) arg1;
 		}
-		contentPane.repaint();		
-	}	
-	
+		contentPane.repaint();
+	}
+
 	public static void outputGif() {
 		FileOutputStream fout;
 		try {
 			fout = new FileOutputStream("1.gif");
-			File[] files = FileGetter.getFiles("", "", ".png");
-	        BufferedImage[] images = new BufferedImage[files.length];
-	        int[] delays = new int[images.length];
+			File[] files = new File(".").listFiles(new FilenameFilter() {
 
-	        for(int i = 0; i < files.length; i++) {
-	            FileInputStream fin = new FileInputStream(files[i]);
-	            BufferedImage image = javax.imageio.ImageIO.read(fin);
-	            images[i] = image;
-	            delays[i] = 0;
-	            fin.close();
-	        }
+				@Override
+				public boolean accept(File dir, String name) {
+					if (name.endsWith(".png") && name.charAt(0) >= '0' && name.charAt(0) <= '9') {
+						return true;
+					}
+					return false;
+				}
+			});
+			BufferedImage[] images = new BufferedImage[files.length];
+			int[] delays = new int[images.length];
 
-	        GIFWriter writer = new GIFWriter();
-	        
-	        writer.setLoopCount(1);
-	        writer.writeAnimatedGIF(images, delays, fout);
+			for (int i = 0; i < files.length; i++) {
+				FileInputStream fin = new FileInputStream(files[i]);
+				BufferedImage image = javax.imageio.ImageIO.read(fin);
+				images[i] = image;
+				delays[i] = 0;
+				fin.close();
+			}
+
+			GIFWriter writer = new GIFWriter();
+
+			writer.setLoopCount(0);
+			writer.writeAnimatedGIF(images, delays, fout);
 //	        GIFTweaker.writeAnimatedGIF(images, delays, fout);
-	        fout.close();
+			fout.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -145,52 +154,53 @@ public class IndAnimatorGui extends JFrame implements Observer{
 			e.printStackTrace();
 		}
 
-        
 	}
 
 	class PngLoader extends Observable implements Runnable {
 		Individual ind = null;
 		String[] filenames = null;
-		int currentIdx = -1;		
+		int currentIdx = -1;
 		boolean running = false;
-		
+
 		public PngLoader(Observer observer) {
 			super();
-			this.addObserver(observer);			
+			this.addObserver(observer);
 		}
 
 		@Override
 		public void run() {
-			running = true;			
-			while(running){
-				loadIndividual();			
+			running = true;
+			while (running) {
+				loadIndividual();
 				setChanged();
 				notifyObservers(ind);
-				if(outputGif){
+				
+				if (outputGif) {
 					ouputImg(ind, factor);
 				}
 			}
-			if(outputGif){
+			if (outputGif) {
+				
 				outputGif();
 			}
 		}
 
 		private void loadIndividual() {
-			if(filenames == null){
+			if (filenames == null) {
 				filenames = FileGetter.getFileNames("", "", ".ind");
 			}
-			if(filenames == null || filenames.length == 0){
+			if (filenames == null || filenames.length == 0) {
 				return;
 			}
-			currentIdx+=everyNPic;
-			if(currentIdx < 50){
+			currentIdx += everyNPic;
+			if (currentIdx < 50) {
 				try {
 					Thread.sleep(delayStart);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}else{
+			} else {
 				try {
 					Thread.sleep(delayTheRest);
 				} catch (InterruptedException e) {
@@ -198,16 +208,16 @@ public class IndAnimatorGui extends JFrame implements Observer{
 					e.printStackTrace();
 				}
 			}
-			if(currentIdx >= filenames.length){
+			if (currentIdx >= filenames.length) {
 //				currentIdx =  0;
 				currentIdx = filenames.length - 1;
-				running = false;				
+				running = false;
 				return;
 			}
 			ind = Serialize.load(filenames[currentIdx]);
-			
-			System.out.println("" + filenames[currentIdx] + " loaded");				
-						
-		}	
+			System.out.println(ind.getHeight());
+			System.out.println("" + filenames[currentIdx] + " loaded");
+
+		}
 	}
 }
